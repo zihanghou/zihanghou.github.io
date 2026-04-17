@@ -1,2 +1,2 @@
-# zihanghou.github.io
+# zihanghou
 mypage

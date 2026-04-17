@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Useful Links</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html">返回首页</a>
+      <a class="active" href="./index.html">常用链接</a>
+      <a href="../health/index.html">饮食 / 体重</a>
+      <a href="../diary/index.html">个人日记</a>
+    </div>
+
+    <section class="hero">
+      <h1>Useful Links</h1>
+      <p>个人常用链接页。内置基础链接分类，并支持在当前浏览器本地添加自己的链接，不影响静态站部署。</p>
+      <input id="searchInput" class="search" type="text" placeholder="搜索链接名称、分类或描述..." />
+    </section>
+
+    <section class="section two-col">
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">我的链接</h2><span>保存在当前浏览器</span></div>
+        <div class="form-grid">
+          <div class="field"><label>名称</label><input class="input" id="linkName" /></div>
+          <div class="field"><label>分类</label>
+            <select id="linkCategory">
+              <option>开发</option><option>AI</option><option>工具</option><option>文档</option><option>娱乐</option><option>其他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div class="field"><label>URL</label><input class="input" id="linkUrl" placeholder="https://..." /></div>
+          <div class="field"><label>描述</label><input class="input" id="linkDesc" /></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="saveLinkBtn">添加链接</button>
+          <button class="btn ghost" id="resetBtn">清空表单</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">内置分类</h2><span>支持筛选</span></div>
+        <div class="quick-links">
+          <a href="#" class="filter-link active" data-filter="全部">全部</a>
+          <a href="#" class="filter-link" data-filter="开发">开发</a>
+          <a href="#" class="filter-link" data-filter="AI">AI</a>
+          <a href="#" class="filter-link" data-filter="工具">工具</a>
+          <a href="#" class="filter-link" data-filter="文档">文档</a>
+          <a href="#" class="filter-link" data-filter="娱乐">娱乐</a>
+          <a href="#" class="filter-link" data-filter="其他">其他</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid" id="linkGrid"></div>
+    </section>
+
+    <div class="footer">静态页面 + localStorage 方案。部署简单，适合个人导航页。</div>
+  </div>
+
+  <script src="../assets/app.js"></script>
+  <script>
+    const STORAGE_KEY = 'hzh_useful_links_v1';
+    const builtin = [
+      { id: uid(), name: 'GitHub', category: '开发', url: 'https://github.com/', desc: '代码仓库与 GitHub Pages' },
+      { id: uid(), name: 'MDN', category: '文档', url: 'https://developer.mozilla.org/', desc: 'Web 开发文档' },
+      { id: uid(), name: 'ChatGPT', category: 'AI', url: 'https://chatgpt.com/', desc: '问答与代码辅助' },
+      { id: uid(), name: 'Claude', category: 'AI', url: 'https://claude.ai/', desc: '长文本阅读与整理' },
+      { id: uid(), name: 'Notion', category: '工具', url: 'https://www.notion.so/', desc: '笔记与文档管理' },
+      { id: uid(), name: 'Bilibili', category: '娱乐', url: 'https://www.bilibili.com/', desc: '视频内容与休闲' },
+    ];
+    const custom = loadCustom();
+    let currentFilter = '全部';
+
+    document.getElementById('saveLinkBtn').addEventListener('click', saveLink);
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.querySelectorAll('.filter-link').forEach(el => el.addEventListener('click', function(e){
+      e.preventDefault();
+      document.querySelectorAll('.filter-link').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      render();
+    }));
+    render();
+
+    function loadCustom() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch(_) { return []; }
+    }
+    function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify(custom)); }
+    function saveLink() {
+      const name = byId('linkName').value.trim();
+      const category = byId('linkCategory').value;
+      const url = byId('linkUrl').value.trim();
+      const desc = byId('linkDesc').value.trim();
+      if (!name || !url) return alert('请填写名称和 URL');
+      custom.unshift({ id: uid(), name, category, url, desc });
+      persist();
+      resetForm();
+      render();
+    }
+    function resetForm() { ['linkName','linkUrl','linkDesc'].forEach(id => byId(id).value = ''); byId('linkCategory').value='开发'; }
+    function deleteLink(id) {
+      if (!confirm('确定删除该自定义链接吗？')) return;
+      const idx = custom.findIndex(x => x.id === id);
+      if (idx >= 0) custom.splice(idx,1);
+      persist();
+      render();
+    }
+    function render() {
+      const keyword = byId('searchInput').value.trim().toLowerCase();
+      let list = [...custom, ...builtin];
+      if (currentFilter !== '全部') list = list.filter(x => x.category === currentFilter);
+      if (keyword) list = list.filter(x => [x.name, x.category, x.desc, x.url].join(' ').toLowerCase().includes(keyword));
+      byId('linkGrid').innerHTML = list.length ? list.map(x => `
+        <div class="card">
+          <div class="title">${escapeHtml(x.name)}</div>
+          <div class="desc">${escapeHtml(x.desc || '暂无描述')}</div>
+          <div class="item-badges"><span class="badge">${escapeHtml(x.category)}</span></div>
+          <div class="toolbar">
+            <a class="btn primary small" href="${escapeHtml(x.url)}" target="_blank" rel="noreferrer">打开</a>
+            ${builtin.some(b => b.id === x.id) ? '' : `<button class="btn danger small" onclick="deleteLink('${x.id}')">删除</button>`}
+          </div>
+        </div>
+      `).join('') : '<div class="empty">没有匹配的链接</div>';
+    }
+    window.deleteLink = deleteLink;
+  </script>
+</body>
+</html>

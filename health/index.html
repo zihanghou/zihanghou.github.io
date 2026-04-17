@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Tracker</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html">返回首页</a>
+      <a class="active" href="./index.html">饮食 / 体重</a>
+      <a href="../links/index.html">常用链接</a>
+      <a href="../diary/index.html">个人日记</a>
+    </div>
+
+    <section class="hero">
+      <h1>Health Tracker</h1>
+      <p>个人版饮食与体重记录工具。数据保存在浏览器本地，支持食物库、自定义热量与三大营养素、饮食记录、体重记录、图片上传和数据导入导出。</p>
+    </section>
+
+    <section class="section">
+      <div class="page-head">
+        <h2 class="page-title">今日概览</h2>
+        <div class="toolbar">
+          <button class="btn ghost" id="exportBtn">导出数据</button>
+          <label class="btn ghost" for="importFile">导入数据</label>
+          <input id="importFile" type="file" accept="application/json" class="hidden" />
+          <button class="btn danger" id="clearAllBtn">清空全部数据</button>
+        </div>
+      </div>
+      <div class="summary-grid" id="todaySummary"></div>
+    </section>
+
+    <section class="section two-col">
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">食物库</h2><span>每 100g 营养信息</span></div>
+        <input type="hidden" id="foodId" />
+        <div class="form-grid cols-4">
+          <div class="field"><label>食物名称</label><input class="input" id="foodName" /></div>
+          <div class="field"><label>热量 kcal</label><input class="input" id="foodCalories" type="number" min="0" step="0.1" /></div>
+          <div class="field"><label>蛋白质 g</label><input class="input" id="foodProtein" type="number" min="0" step="0.1" /></div>
+          <div class="field"><label>脂肪 g</label><input class="input" id="foodFat" type="number" min="0" step="0.1" /></div>
+        </div>
+        <div class="form-grid" style="margin-top:12px;">
+          <div class="field"><label>碳水 g</label><input class="input" id="foodCarbs" type="number" min="0" step="0.1" /></div>
+          <div class="field"><label>图片（可选）</label><input class="input" id="foodImage" type="file" accept="image/*" /></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="saveFoodBtn">保存食物</button>
+          <button class="btn ghost" id="resetFoodBtn">清空表单</button>
+        </div>
+        <div class="field" style="margin-top:12px;"><label>搜索食物</label><input class="input" id="foodSearch" placeholder="输入名称筛选" /></div>
+        <div class="list" id="foodList"></div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="page-head"><h2 class="page-title">饮食记录</h2><span>自动计算本次营养值</span></div>
+          <div class="form-grid">
+            <div class="field"><label>日期</label><input class="input" id="dietDate" type="date" /></div>
+            <div class="field"><label>餐次</label>
+              <select id="dietMealType">
+                <option>早餐</option><option>午餐</option><option>晚餐</option><option>加餐</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div class="field"><label>食物</label><select id="dietFood"></select></div>
+            <div class="field"><label>克数 g</label><input class="input" id="dietGrams" type="number" min="1" step="1" value="100" /></div>
+          </div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div class="field"><label>图片（可选）</label><input class="input" id="dietImage" type="file" accept="image/*" /></div>
+            <div class="field"><label>备注</label><input class="input" id="dietNote" /></div>
+          </div>
+          <div class="note" id="dietPreview">选择食物并填写克数后，将自动预览热量与三大营养素。</div>
+          <div class="toolbar"><button class="btn primary" id="saveDietBtn">保存饮食记录</button></div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <div class="page-head"><h2 class="page-title">体重记录</h2><span>支持上传图片</span></div>
+          <div class="form-grid">
+            <div class="field"><label>日期</label><input class="input" id="weightDate" type="date" /></div>
+            <div class="field"><label>体重 kg</label><input class="input" id="weightValue" type="number" min="0" step="0.1" /></div>
+          </div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div class="field"><label>图片（可选）</label><input class="input" id="weightImage" type="file" accept="image/*" /></div>
+            <div class="field"><label>备注</label><input class="input" id="weightNote" /></div>
+          </div>
+          <div class="toolbar"><button class="btn primary" id="saveWeightBtn">保存体重记录</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section two-col">
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">饮食列表</h2><span>按日期查看</span></div>
+        <div class="field"><label>筛选日期</label><input class="input" id="dietFilterDate" type="date" /></div>
+        <div class="summary-grid" id="dietDaySummary" style="margin-top:12px;"></div>
+        <div class="list" id="dietList"></div>
+      </div>
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">体重列表</h2><span>最近记录在上方</span></div>
+        <div class="list" id="weightList"></div>
+      </div>
+    </section>
+
+    <div class="footer">本页数据仅保存在当前浏览器。本地用最方便；如需多人共享，后续可再接 Supabase。</div>
+  </div>
+
+  <script src="../assets/app.js"></script>
+  <script>
+    const STORAGE_KEY = 'hzh_health_tracker_v2';
+    const state = loadState();
+    ensureSeedData();
+    init();
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { foods: [], dietLogs: [], weightLogs: [] };
+      try { return JSON.parse(raw); } catch (_) { return { foods: [], dietLogs: [], weightLogs: [] }; }
+    }
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function ensureSeedData() {
+      if (state.foods.length) return;
+      state.foods = [
+        { id: uid(), name: '鸡胸肉', calories: 133, protein: 27, fat: 3, carbs: 0, image: '' },
+        { id: uid(), name: '米饭', calories: 116, protein: 2.6, fat: 0.3, carbs: 25.9, image: '' },
+        { id: uid(), name: '鸡蛋', calories: 144, protein: 13.3, fat: 8.8, carbs: 2.8, image: '' },
+      ];
+      saveState();
+    }
+    function init() {
+      const today = formatDateInput();
+      byId('dietDate').value = today;
+      byId('weightDate').value = today;
+      byId('dietFilterDate').value = today;
+      bindEvents();
+      refreshAll();
+    }
+    function bindEvents() {
+      byId('saveFoodBtn').addEventListener('click', saveFood);
+      byId('resetFoodBtn').addEventListener('click', resetFoodForm);
+      byId('foodSearch').addEventListener('input', renderFoods);
+      byId('saveDietBtn').addEventListener('click', saveDietLog);
+      byId('saveWeightBtn').addEventListener('click', saveWeightLog);
+      byId('dietFood').addEventListener('change', renderDietPreview);
+      byId('dietGrams').addEventListener('input', renderDietPreview);
+      byId('dietFilterDate').addEventListener('change', () => { renderDietLogs(); renderTodaySummary(); });
+      byId('exportBtn').addEventListener('click', exportData);
+      byId('importFile').addEventListener('change', importData);
+      byId('clearAllBtn').addEventListener('click', clearAllData);
+    }
+
+    async function saveFood() {
+      const id = byId('foodId').value;
+      const name = byId('foodName').value.trim();
+      const calories = num(byId('foodCalories').value);
+      const protein = num(byId('foodProtein').value);
+      const fat = num(byId('foodFat').value);
+      const carbs = num(byId('foodCarbs').value);
+      const file = byId('foodImage').files[0];
+      if (!name) return alert('请输入食物名称');
+      if ([calories, protein, fat, carbs].some(v => Number.isNaN(v) || v < 0)) return alert('请正确填写营养值');
+      const image = file ? await fileToBase64(file) : '';
+      if (id) {
+        const item = state.foods.find(f => f.id === id);
+        if (!item) return;
+        Object.assign(item, { name, calories, protein, fat, carbs });
+        if (image) item.image = image;
+      } else {
+        state.foods.unshift({ id: uid(), name, calories, protein, fat, carbs, image });
+      }
+      saveState();
+      resetFoodForm();
+      refreshAll();
+    }
+    function resetFoodForm() {
+      ['foodId','foodName','foodCalories','foodProtein','foodFat','foodCarbs'].forEach(id => byId(id).value = '');
+      byId('foodImage').value = '';
+    }
+    function editFood(id) {
+      const f = state.foods.find(x => x.id === id);
+      if (!f) return;
+      byId('foodId').value = f.id;
+      byId('foodName').value = f.name;
+      byId('foodCalories').value = f.calories;
+      byId('foodProtein').value = f.protein;
+      byId('foodFat').value = f.fat;
+      byId('foodCarbs').value = f.carbs;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function deleteFood(id) {
+      if (state.dietLogs.some(x => x.foodId === id)) return alert('该食物已有饮食记录引用，请先删除相关记录。');
+      if (!confirm('确定删除该食物吗？')) return;
+      state.foods = state.foods.filter(x => x.id !== id);
+      saveState();
+      refreshAll();
+    }
+
+    async function saveDietLog() {
+      const date = byId('dietDate').value;
+      const foodId = byId('dietFood').value;
+      const grams = num(byId('dietGrams').value);
+      const mealType = byId('dietMealType').value;
+      const note = byId('dietNote').value.trim();
+      const file = byId('dietImage').files[0];
+      const food = state.foods.find(f => f.id === foodId);
+      if (!date) return alert('请选择日期');
+      if (!food) return alert('请先新增食物');
+      if (grams <= 0 || Number.isNaN(grams)) return alert('请输入正确克数');
+      const image = file ? await fileToBase64(file) : '';
+      const factor = grams / 100;
+      state.dietLogs.unshift({
+        id: uid(), date, foodId: food.id, foodName: food.name, grams, mealType, note, image,
+        calories: round1(food.calories * factor),
+        protein: round1(food.protein * factor),
+        fat: round1(food.fat * factor),
+        carbs: round1(food.carbs * factor),
+        createdAt: Date.now()
+      });
+      saveState();
+      byId('dietImage').value = '';
+      byId('dietNote').value = '';
+      byId('dietGrams').value = '100';
+      refreshAll();
+    }
+    function deleteDietLog(id) {
+      if (!confirm('确定删除该饮食记录吗？')) return;
+      state.dietLogs = state.dietLogs.filter(x => x.id !== id);
+      saveState();
+      refreshAll();
+    }
+
+    async function saveWeightLog() {
+      const date = byId('weightDate').value;
+      const weight = num(byId('weightValue').value);
+      const note = byId('weightNote').value.trim();
+      const file = byId('weightImage').files[0];
+      if (!date) return alert('请选择日期');
+      if (weight <= 0 || Number.isNaN(weight)) return alert('请输入正确体重');
+      const image = file ? await fileToBase64(file) : '';
+      state.weightLogs.unshift({ id: uid(), date, weight, note, image, createdAt: Date.now() });
+      saveState();
+      byId('weightValue').value = '';
+      byId('weightImage').value = '';
+      byId('weightNote').value = '';
+      refreshAll();
+    }
+    function deleteWeightLog(id) {
+      if (!confirm('确定删除该体重记录吗？')) return;
+      state.weightLogs = state.weightLogs.filter(x => x.id !== id);
+      saveState();
+      refreshAll();
+    }
+
+    function renderFoodOptions() {
+      const select = byId('dietFood');
+      const current = select.value;
+      select.innerHTML = state.foods.length ? state.foods.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('') : '<option value="">请先新增食物</option>';
+      if (state.foods.some(f => f.id === current)) select.value = current;
+    }
+    function renderFoods() {
+      const keyword = byId('foodSearch').value.trim().toLowerCase();
+      const list = state.foods.filter(f => f.name.toLowerCase().includes(keyword));
+      byId('foodList').innerHTML = list.length ? list.map(f => `
+        <div class="item">
+          <div class="item-layout">
+            <div>
+              <div class="item-head">
+                <div><strong>${escapeHtml(f.name)}</strong><div class="item-meta">每 100g</div></div>
+                <div class="link-row">
+                  <button class="btn ghost small" onclick="editFood('${f.id}')">编辑</button>
+                  <button class="btn danger small" onclick="deleteFood('${f.id}')">删除</button>
+                </div>
+              </div>
+              <div class="item-badges">
+                <span class="badge">热量 ${f.calories} kcal</span>
+                <span class="badge">蛋白 ${f.protein} g</span>
+                <span class="badge">脂肪 ${f.fat} g</span>
+                <span class="badge">碳水 ${f.carbs} g</span>
+              </div>
+            </div>
+            ${f.image ? `<img class="thumb" src="${f.image}" alt="food" />` : ''}
+          </div>
+        </div>
+      `).join('') : '<div class="empty">暂无食物数据</div>';
+    }
+    function renderDietPreview() {
+      const food = state.foods.find(f => f.id === byId('dietFood').value);
+      const grams = num(byId('dietGrams').value || 0);
+      if (!food || grams <= 0) {
+        byId('dietPreview').textContent = '选择食物并填写克数后，将自动预览热量与三大营养素。';
+        return;
+      }
+      const factor = grams / 100;
+      byId('dietPreview').textContent = `本次预计：热量 ${round1(food.calories * factor)} kcal，蛋白 ${round1(food.protein * factor)} g，脂肪 ${round1(food.fat * factor)} g，碳水 ${round1(food.carbs * factor)} g。`;
+    }
+    function renderDietLogs() {
+      const date = byId('dietFilterDate').value;
+      const logs = state.dietLogs.filter(x => !date || x.date === date).sort((a,b) => b.createdAt - a.createdAt);
+      const sum = logs.reduce((acc, x) => {
+        acc.calories += x.calories; acc.protein += x.protein; acc.fat += x.fat; acc.carbs += x.carbs; return acc;
+      }, { calories:0, protein:0, fat:0, carbs:0 });
+      byId('dietDaySummary').innerHTML = [
+        ['热量', `${round1(sum.calories)} kcal`],
+        ['蛋白', `${round1(sum.protein)} g`],
+        ['脂肪', `${round1(sum.fat)} g`],
+        ['碳水', `${round1(sum.carbs)} g`],
+      ].map(([k,v]) => `<div class="summary-item"><div class="muted">${k}</div><strong>${v}</strong></div>`).join('');
+      byId('dietList').innerHTML = logs.length ? logs.map(x => `
+        <div class="item">
+          <div class="item-layout">
+            <div>
+              <div class="item-head">
+                <div><strong>${escapeHtml(x.foodName)}</strong><div class="item-meta">${x.date} · ${escapeHtml(x.mealType)} · ${x.grams} g</div></div>
+                <button class="btn danger small" onclick="deleteDietLog('${x.id}')">删除</button>
+              </div>
+              <div class="item-badges">
+                <span class="badge">${x.calories} kcal</span>
+                <span class="badge">蛋白 ${x.protein} g</span>
+                <span class="badge">脂肪 ${x.fat} g</span>
+                <span class="badge">碳水 ${x.carbs} g</span>
+              </div>
+              ${x.note ? `<div class="item-meta" style="margin-top:8px;">备注：${escapeHtml(x.note)}</div>` : ''}
+            </div>
+            ${x.image ? `<img class="thumb" src="${x.image}" alt="diet" />` : ''}
+          </div>
+        </div>
+      `).join('') : '<div class="empty">该日期暂无饮食记录</div>';
+    }
+    function renderWeightLogs() {
+      const logs = [...state.weightLogs].sort((a,b) => b.createdAt - a.createdAt);
+      byId('weightList').innerHTML = logs.length ? logs.map(x => `
+        <div class="item">
+          <div class="item-layout">
+            <div>
+              <div class="item-head">
+                <div><strong>${x.weight} kg</strong><div class="item-meta">${x.date}</div></div>
+                <button class="btn danger small" onclick="deleteWeightLog('${x.id}')">删除</button>
+              </div>
+              ${x.note ? `<div class="item-meta">备注：${escapeHtml(x.note)}</div>` : ''}
+            </div>
+            ${x.image ? `<img class="thumb" src="${x.image}" alt="weight" />` : ''}
+          </div>
+        </div>
+      `).join('') : '<div class="empty">暂无体重记录</div>';
+    }
+    function renderTodaySummary() {
+      const date = byId('dietFilterDate').value || formatDateInput();
+      const diet = state.dietLogs.filter(x => x.date === date);
+      const latestWeightToday = [...state.weightLogs].filter(x => x.date === date).sort((a,b) => b.createdAt - a.createdAt)[0];
+      const sum = diet.reduce((acc, x) => {
+        acc.calories += x.calories; acc.protein += x.protein; acc.fat += x.fat; acc.carbs += x.carbs; return acc;
+      }, { calories:0, protein:0, fat:0, carbs:0 });
+      byId('todaySummary').innerHTML = [
+        ['统计日期', date],
+        ['今日热量', `${round1(sum.calories)} kcal`],
+        ['今日蛋白', `${round1(sum.protein)} g`],
+        ['今日脂肪', `${round1(sum.fat)} g`],
+        ['今日碳水', `${round1(sum.carbs)} g`],
+        ['今日体重', latestWeightToday ? `${latestWeightToday.weight} kg` : '未记录'],
+      ].map(([k,v]) => `<div class="summary-item"><div class="muted">${k}</div><strong>${v}</strong></div>`).join('');
+    }
+    function exportData() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `health-tracker-backup-${formatDateInput()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    async function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.foods || !data.dietLogs || !data.weightLogs) throw new Error('invalid');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        location.reload();
+      } catch (_) {
+        alert('导入失败，请确认 JSON 文件格式正确。');
+      } finally {
+        event.target.value = '';
+      }
+    }
+    function clearAllData() {
+      if (!confirm('确定清空全部饮食、体重和食物数据吗？此操作不可恢复。')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+    function refreshAll() {
+      renderFoodOptions();
+      renderFoods();
+      renderDietPreview();
+      renderDietLogs();
+      renderWeightLogs();
+      renderTodaySummary();
+    }
+
+    window.editFood = editFood;
+    window.deleteFood = deleteFood;
+    window.deleteDietLog = deleteDietLog;
+    window.deleteWeightLog = deleteWeightLog;
+  </script>
+</body>
+</html>

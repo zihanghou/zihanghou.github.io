@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diary</title>
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="top-nav">
+      <a href="../index.html">返回首页</a>
+      <a class="active" href="./index.html">个人日记</a>
+      <a href="../health/index.html">饮食 / 体重</a>
+    </div>
+
+    <section class="hero">
+      <h1>Diary</h1>
+      <p>简单本地日记页。支持标题、日期和正文，数据保存在浏览器本地，适合个人使用。</p>
+    </section>
+
+    <section class="section two-col">
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">写日记</h2><span>本地保存</span></div>
+        <input type="hidden" id="entryId" />
+        <div class="field"><label>标题</label><input class="input" id="entryTitle" /></div>
+        <div class="field" style="margin-top:12px;"><label>日期</label><input class="input" id="entryDate" type="date" /></div>
+        <div class="field" style="margin-top:12px;"><label>正文</label><textarea id="entryContent"></textarea></div>
+        <div class="toolbar">
+          <button class="btn primary" id="saveEntryBtn">保存</button>
+          <button class="btn ghost" id="resetEntryBtn">清空表单</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="page-head"><h2 class="page-title">筛选</h2><span>按关键词搜索</span></div>
+        <div class="field"><label>搜索</label><input class="input" id="searchInput" placeholder="搜索标题或正文" /></div>
+        <div class="field" style="margin-top:12px;"><label>日期</label><input class="input" id="filterDate" type="date" /></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="list" id="entryList"></div>
+    </section>
+
+    <div class="footer">本页为浏览器本地日记，不会自动同步到其他设备。</div>
+  </div>
+
+  <script src="../assets/app.js"></script>
+  <script>
+    const STORAGE_KEY = 'hzh_diary_entries_v1';
+    let entries = loadEntries();
+    init();
+
+    function loadEntries() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch(_) { return []; }
+    }
+    function saveEntries() { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+    function init() {
+      byId('entryDate').value = formatDateInput();
+      byId('saveEntryBtn').addEventListener('click', saveEntry);
+      byId('resetEntryBtn').addEventListener('click', resetForm);
+      byId('searchInput').addEventListener('input', renderEntries);
+      byId('filterDate').addEventListener('change', renderEntries);
+      renderEntries();
+    }
+    function saveEntry() {
+      const id = byId('entryId').value;
+      const title = byId('entryTitle').value.trim();
+      const date = byId('entryDate').value;
+      const content = byId('entryContent').value.trim();
+      if (!title || !date || !content) return alert('请完整填写标题、日期和正文');
+      if (id) {
+        const item = entries.find(x => x.id === id);
+        if (!item) return;
+        Object.assign(item, { title, date, content, updatedAt: Date.now() });
+      } else {
+        entries.unshift({ id: uid(), title, date, content, createdAt: Date.now(), updatedAt: Date.now() });
+      }
+      saveEntries();
+      resetForm();
+      renderEntries();
+    }
+    function editEntry(id) {
+      const item = entries.find(x => x.id === id);
+      if (!item) return;
+      byId('entryId').value = item.id;
+      byId('entryTitle').value = item.title;
+      byId('entryDate').value = item.date;
+      byId('entryContent').value = item.content;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function deleteEntry(id) {
+      if (!confirm('确定删除这篇日记吗？')) return;
+      entries = entries.filter(x => x.id !== id);
+      saveEntries();
+      renderEntries();
+    }
+    function resetForm() {
+      byId('entryId').value = '';
+      byId('entryTitle').value = '';
+      byId('entryDate').value = formatDateInput();
+      byId('entryContent').value = '';
+    }
+    function renderEntries() {
+      const keyword = byId('searchInput').value.trim().toLowerCase();
+      const date = byId('filterDate').value;
+      let list = [...entries].sort((a,b) => b.updatedAt - a.updatedAt);
+      if (date) list = list.filter(x => x.date === date);
+      if (keyword) list = list.filter(x => [x.title, x.content].join(' ').toLowerCase().includes(keyword));
+      byId('entryList').innerHTML = list.length ? list.map(x => `
+        <div class="item">
+          <div class="item-head">
+            <div><strong>${escapeHtml(x.title)}</strong><div class="item-meta">${x.date}</div></div>
+            <div class="link-row">
+              <button class="btn ghost small" onclick="editEntry('${x.id}')">编辑</button>
+              <button class="btn danger small" onclick="deleteEntry('${x.id}')">删除</button>
+            </div>
+          </div>
+          <div class="item-meta" style="white-space:pre-wrap;">${escapeHtml(x.content)}</div>
+        </div>
+      `).join('') : '<div class="empty">暂无日记内容</div>';
+    }
+    window.editEntry = editEntry;
+    window.deleteEntry = deleteEntry;
+  </script>
+</body>
+</html>

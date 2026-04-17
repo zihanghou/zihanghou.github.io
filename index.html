@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HZH Home</title>
+  <link rel="stylesheet" href="./assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>HZH Home</h1>
+      <p>轻量个人主页。主入口用于放置常用链接、饮食体重管理、小游戏合集、个人日记，以及后续可继续扩展的个人页面。</p>
+      <input id="searchInput" class="search" type="text" placeholder="搜索页面、链接或描述..." />
+      <div class="quick-links">
+        <a href="#links">常用链接</a>
+        <a href="#health">饮食 / 体重</a>
+        <a href="#games">小游戏</a>
+        <a href="#diary">个人日记</a>
+        <a href="#more">其他页面</a>
+      </div>
+    </section>
+
+    <section class="section" id="links">
+      <div class="section-head">
+        <h2>常用链接</h2>
+        <span>可继续扩充，适合做个人导航页</span>
+      </div>
+      <div class="grid searchable-grid">
+        <a class="card searchable" href="./links/index.html">
+          <div class="title">Useful Links</div>
+          <div class="desc">进入完整链接合集页面，支持分类查看和本地自定义新增链接。</div>
+          <div class="tag">入口页</div>
+        </a>
+        <a class="card searchable" href="https://github.com/" target="_blank" rel="noreferrer">
+          <div class="title">GitHub</div>
+          <div class="desc">代码仓库、项目托管与 GitHub Pages 发布入口。</div>
+          <div class="tag">开发</div>
+        </a>
+        <a class="card searchable" href="https://chatgpt.com/" target="_blank" rel="noreferrer">
+          <div class="title">ChatGPT</div>
+          <div class="desc">问答、代码辅助、方案设计与日常信息整理。</div>
+          <div class="tag">AI</div>
+        </a>
+        <a class="card searchable" href="https://developer.mozilla.org/" target="_blank" rel="noreferrer">
+          <div class="title">MDN</div>
+          <div class="desc">HTML、CSS、JavaScript、浏览器 API 官方文档。</div>
+          <div class="tag">文档</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="health">
+      <div class="section-head">
+        <h2>饮食 / 体重管理</h2>
+        <span>已可直接使用</span>
+      </div>
+      <div class="grid searchable-grid">
+        <a class="card searchable" href="./health/index.html">
+          <div class="title">Health Tracker</div>
+          <div class="desc">记录食物热量、蛋白脂肪碳水、饮食日志、体重记录与图片。</div>
+          <div class="tag">已实现</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="games">
+      <div class="section-head">
+        <h2>小游戏合集</h2>
+        <span>预留入口</span>
+      </div>
+      <div class="grid searchable-grid">
+        <a class="card searchable" href="./games/index.html">
+          <div class="title">Mini Games</div>
+          <div class="desc">小游戏入口页，后续可以放贪吃蛇、2048、点击类等网页小游戏。</div>
+          <div class="tag">预留</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="diary">
+      <div class="section-head">
+        <h2>个人日记</h2>
+        <span>本地存储版本</span>
+      </div>
+      <div class="grid searchable-grid">
+        <a class="card searchable" href="./diary/index.html">
+          <div class="title">Diary</div>
+          <div class="desc">简单日记页面，可在浏览器本地保存标题、日期与正文。</div>
+          <div class="tag">已实现</div>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="more">
+      <div class="section-head">
+        <h2>其他页面</h2>
+        <span>继续扩展即可</span>
+      </div>
+      <div class="grid searchable-grid">
+        <a class="card searchable" href="./about/index.html">
+          <div class="title">About</div>
+          <div class="desc">简洁说明页，可继续补充个人介绍、更新记录与联系方式。</div>
+          <div class="tag">预留</div>
+        </a>
+      </div>
+    </section>
+
+    <div class="footer">© 2026 HZH Home</div>
+  </div>
+  <script>
+    const input = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.searchable');
+    input.addEventListener('input', function () {
+      const keyword = this.value.trim().toLowerCase();
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.classList.toggle('hidden', !!keyword && !text.includes(keyword));
+      });
+    });
+  </script>
+</body>
+</html>
